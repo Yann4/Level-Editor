@@ -12,6 +12,9 @@ running = True
 #Each object in this list is a list containing [pygame.Rect, (r,g,b)]
 boxes = []
 
+player_entry = pygame.Rect(-255,-255,0,0)
+player_exit = pygame.Rect(-255,-255,0,0)
+
 box_colour = (255, 0, 0)
 box_selected_colour = (0, 255, 0)
 selected_box_index = -1
@@ -21,14 +24,43 @@ def my_round(x, base=10):
 
 def Serialise(file_name):
     global boxes
+    global player_entry
+    global player_exit
+
+    if file_name.find(".txt", len(file_name) - 3) is -1:
+        file_name += ".txt"
+
     file_out = open(file_name, "w")
-    file_out.write("GRASS (0,-1.779,-36) (10,1,10) (1.51,0,0)\n")
+
+    width = screen.get_width()
+    height = screen.get_height()
+
+    centre_pos = (my_round(width/ 2), my_round(height/ 2))
+
+    for numX in range(int(-width / 2), int(width / 2), 10):
+        for numY in range(int(-height / 2), int(height / 2), 10):
+            file_out.write("GRASS (" + str(numX) + ",-1.779," + str(numY) + ") (10,1,10) (1.51,0,0)\n")
+    
+
+    if player_entry.left != -255:
+        y_position = "1.5"
+        x_pos = player_entry.x - centre_pos[0]
+        z_pos = centre_pos[1] - player_entry.y
+
+        pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
+        file_out.write("PLAYER " + pos_string + "\n")
+
+    if player_exit.left != -255:
+        y_position = "1.5"
+        x_pos = player_exit.x - centre_pos[0]
+        z_pos = centre_pos[1] - player_exit.y
+
+        pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
+        file_out.write("EXIT " + pos_string + "(0.2,0.2,0.2) (0,0,0)\n")
 
     for box_object in boxes:
         box = box_object[0]
         size_string = "(" + str(abs(box.width)) + "," + str(max(box.width, box.height)) + "," + str(abs(box.height)) + ")"
-
-        centre_pos = (my_round(screen.get_width() / 2), my_round(screen.get_height() / 2))
         
         y_position = "-0.48"
         x_pos = box.x - centre_pos[0]
@@ -37,6 +69,7 @@ def Serialise(file_name):
         pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
         print("Crate " + pos_string + " " + size_string + " (0,0,0)")
         file_out.write("CRATE " + pos_string + " " + size_string + " (0,0,0)\n")
+
     file_out.close()
 
 def Initialise():
@@ -115,10 +148,16 @@ def Render():
     for box in boxes:
         pygame.draw.rect(screen, box[1], box[0])
 
+    if player_entry.left != -255:
+        pygame.draw.rect(screen, (255, 255, 0), player_entry)
+
+    if player_exit.left != -255:
+        pygame.draw.rect(screen, (0, 0, 255), player_exit)
+
     centre_pos = (screen.get_width() / 2, screen.get_height() / 2)
     pygame.draw.rect(screen, (255, 255, 0), pygame.Rect(centre_pos[0], centre_pos[1], 10, 10))
 
-    help_string = "q - increase width; a - decrease width; w - increase height; s - decrease height"
+    help_string = "q - increase width; a - decrease width; w - increase height; s - decrease height; p - place player entry; e - place player exit"
     font = pygame.font.Font(None, 15)
     help_text = font.render(help_string, True, (255,255,255), None)
     screen.blit(help_text, (5, screen.get_height() - help_text.get_height() - 5))
@@ -132,6 +171,12 @@ def Input():
     inflate_height_key = pygame.K_w
     deflate_height_key = pygame.K_s
 
+    make_player_entry = pygame.K_p
+    make_player_exit = pygame.K_e
+
+    global player_entry
+    global player_exit
+    
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 global running
@@ -152,6 +197,12 @@ def Input():
                     Change_Box_Size(True, "Height")
                 elif event.key == deflate_height_key:
                     Change_Box_Size(False, "Height")
+                elif event.key == make_player_entry:
+                    mouse_pos = pygame.mouse.get_pos()
+                    player_entry = pygame.Rect(my_round(mouse_pos[0]), my_round(mouse_pos[1]), 10, 10)
+                elif event.key == make_player_exit:
+                    mouse_pos = pygame.mouse.get_pos()
+                    player_exit = pygame.Rect(my_round(mouse_pos[0]), my_round(mouse_pos[1]), 10, 10)
                 
                 if event.key == pygame.K_f:
                     file_name = ask(screen, "Desired file name?")     
@@ -164,3 +215,5 @@ if __name__ == "__main__":
     while running:
         Input()
         Render()
+
+    pygame.quit()
