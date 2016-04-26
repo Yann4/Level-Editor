@@ -4,7 +4,7 @@ from pygame.locals import *
 from input_box import ask
 from builtins import int, str, print
 
-screen = pygame.display.set_mode((1024, 768))
+screen = pygame.display.set_mode((1000, 1000))
 clock = pygame.time.Clock()
 pygame.key.set_repeat(600, 600)
 running = True
@@ -32,39 +32,36 @@ def Serialise(file_name):
 
     file_out = open(file_name, "w")
 
-    width = screen.get_width()
-    height = screen.get_height()
+    width = screen.get_width() / 100
+    height = screen.get_height() / 100
 
     centre_pos = (my_round(width/ 2), my_round(height/ 2))
 
-    for numX in range(int(-width / 2), int(width / 2), 10):
-        for numY in range(int(-height / 2), int(height / 2), 10):
-            file_out.write("GRASS (" + str(numX) + ",-1.779," + str(numY) + ") (10,1,10) (1.51,0,0)\n")
-    
+    file_out.write("GRASS (0,-0.5,0) (50,1,50) (0,0,0)\n")
 
     if player_entry.left != -255:
         y_position = "1.5"
-        x_pos = player_entry.x - centre_pos[0]
-        z_pos = centre_pos[1] - player_entry.y
+        x_pos = ((player_entry.x * 25) / 500) - 25
+        z_pos = ((player_entry.y * 25) / 500) - 25
 
         pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
         file_out.write("PLAYER " + pos_string + "\n")
 
     if player_exit.left != -255:
-        y_position = "1.5"
-        x_pos = player_exit.x - centre_pos[0]
-        z_pos = centre_pos[1] - player_exit.y
+        y_position = "1"
+        x_pos = ((player_exit.x * 25) / 500) - 25
+        z_pos = ((player_exit.y * 25) / 500) - 25
 
         pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
-        file_out.write("EXIT " + pos_string + "(0.2,0.2,0.2) (0,0,0)\n")
+        file_out.write("EXIT " + pos_string + " (0.2,0.2,0.2) (0,0,0)\n")
 
     for box_object in boxes:
         box = box_object[0]
-        size_string = "(" + str(abs(box.width)) + "," + str(max(box.width, box.height)) + "," + str(abs(box.height)) + ")"
+        size_string = "(" + str(abs(box.width / 10)) + ",1," + str(abs(box.height / 10)) + ")"
         
-        y_position = "-0.48"
-        x_pos = box.x - centre_pos[0]
-        z_pos = centre_pos[1] - box.y
+        y_position = "0.5"
+        x_pos = ((box.x * 25) / 500) - 25
+        z_pos = ((box.y * 25) / 500) - 25
 
         pos_string = "(" + str(x_pos) + "," + y_position + "," + str(z_pos) + ")"
         print("Crate " + pos_string + " " + size_string + " (0,0,0)")
